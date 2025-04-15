@@ -52,7 +52,7 @@ def predict_malware(api_calls, threshold=0.5):
 # Example usage
 if __name__ == "__main__":
     # Path to the text file containing API calls
-    api_file_path = "../report_results/report2.txt"
+    api_file_path = "../report_results/report.txt"
     
     # Read API calls from the file
     try:
