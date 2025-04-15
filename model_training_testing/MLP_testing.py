@@ -51,10 +51,20 @@ def predict_malware(api_calls, threshold=0.5):
 
 # Example usage
 if __name__ == "__main__":
-    # Test with a sample API call sequence
-    sample_api_calls = """
-CoCreateInstance CreateProcessInternalW CreateRemoteThreadEx DeviceIoControl DllLoadNotification GetCommandLineW GetKeyboardLayout GetSystemInfo GetSystemTimeAsFileTime IsDebuggerPresent LdrGetDllHandle LdrGetProcedureAddressForCaller LdrLoadDll LdrpCallInitRoutine LoadLibraryExW LookupPrivilegeValueW MsiInstallProductW NtAddAtomEx NtAllocateVirtualMemory NtClose NtCreateFile NtCreateMutant NtCreateSection NtCreateThreadEx NtCreateUserProcess NtDelayExecution NtDuplicateObject NtFreeVirtualMemory NtMapViewOfSection NtOpenDirectoryObject NtOpenEvent NtOpenFile NtOpenKey NtOpenKeyEx NtOpenProcessToken NtOpenSection NtProtectVirtualMemory NtQueryAttributesFile NtQueryInformationFile NtQueryInformationThread NtQueryInformationToken NtQueryKey NtQueryLicenseValue NtQuerySystemInformation NtQuerySystemTime NtQueryValueKey NtReadFile NtReleaseMutant NtSetInformationFile NtSetInformationProcess NtSetTimerEx NtTerminateProcess NtTerminateThread NtTestAlert NtUnmapViewOfSection NtUnmapViewOfSectionEx NtWaitForSingleObject NtWriteFile PostMessageW PostThreadMessageW RegCloseKey RegNotifyChangeKeyValue RegOpenKeyExW RegQueryValueExW RtlDosPathNameToNtPathName_U RtlSetCurrentTransaction SetUnhandledExceptionFilter StartServiceW    """
+    # Path to the text file containing API calls
+    api_file_path = "../report_results/report2.txt"
     
+    # Read API calls from the file
+    try:
+        with open(api_file_path, "r", encoding="utf-8") as file:
+            sample_api_calls = file.read().strip()  # Read and remove leading/trailing whitespace
+    except FileNotFoundError:
+        print(f"Error: The file '{api_file_path}' was not found.")
+        exit()
+    except Exception as e:
+        print(f"Error reading the file: {e}")
+        exit()
+
     # Remove newlines and extra spaces
     sample_api_calls = " ".join(sample_api_calls.split())
     
@@ -67,4 +77,3 @@ CoCreateInstance CreateProcessInternalW CreateRemoteThreadEx DeviceIoControl Dll
         print(f"\nModel: {model_name.replace('_', ' ').title()}")
         print(f"Prediction: {result['predicted_label']}")
         print(f"Malware Probability: {result['malware_probability']:.4f}")
-
