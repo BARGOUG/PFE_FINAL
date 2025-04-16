@@ -1,7 +1,14 @@
 import joblib
+import os
+
+# Define absolute paths for the model, vectorizer, and report file
+BASE_DIR = "/var/www/PFE_FINAL"
+TFIDF_VECTORIZER_PATH = os.path.join(BASE_DIR, "model_training_testing", "tfidf_vectorizer.pkl")
+MLP_MODEL_PATH = os.path.join(BASE_DIR, "model_training_testing", "mlp_neural_network_model.pkl")
+REPORT_FILE_PATH = os.path.join(BASE_DIR, "report_results", "report.txt")
 
 # Load the TF-IDF vectorizer
-tfidf = joblib.load("tfidf_vectorizer.pkl")
+tfidf = joblib.load(TFIDF_VECTORIZER_PATH)
 
 # Define the cleaning function (same as during training)
 def clean_api_calls(api_sequence):
@@ -26,40 +33,27 @@ def predict_malware(api_calls, threshold=0.5):
     # Transform the input using the TF-IDF vectorizer
     X_input = tfidf.transform([cleaned_calls])
     
-    # Load all models and make predictions
-    model_names = [
-        "mlp_neural_network"
-    ]
+    # Load the MLP model
+    model = joblib.load(MLP_MODEL_PATH)
     
-    results = {}
-    for model_name in model_names:
-        # Load the model
-        model_path = f"{model_name}_model.pkl"
-        model = joblib.load(model_path)
-        
-        # Make predictions
-        probability = model.predict_proba(X_input)[0][1]  # Probability of being malware
-        prediction = "Malware" if probability >= threshold else "Goodware"
-        
-        # Store results
-        results[model_name] = {
-            "predicted_label": prediction,
-            "malware_probability": float(probability)
-        }
+    # Make predictions
+    probability = model.predict_proba(X_input)[0][1]  # Probability of being malware
+    prediction = "Malware" if probability >= threshold else "Goodware"
     
-    return results
+    # Store results
+    return {
+        "predicted_label": prediction,
+        "malware_probability": float(probability)
+    }
 
 # Example usage
 if __name__ == "__main__":
-    # Path to the text file containing API calls
-    api_file_path = "../report_results/report.txt"
-    
-    # Read API calls from the file
+    # Read API calls from the report file
     try:
-        with open(api_file_path, "r", encoding="utf-8") as file:
+        with open(REPORT_FILE_PATH, "r", encoding="utf-8") as file:
             sample_api_calls = file.read().strip()  # Read and remove leading/trailing whitespace
     except FileNotFoundError:
-        print(f"Error: The file '{api_file_path}' was not found.")
+        print(f"Error: The file '{REPORT_FILE_PATH}' was not found.")
         exit()
     except Exception as e:
         print(f"Error reading the file: {e}")
@@ -72,8 +66,6 @@ if __name__ == "__main__":
     results = predict_malware(sample_api_calls, threshold=0.5)
     
     # Print results
-    print("\nPredictions Across All Models:")
-    for model_name, result in results.items():
-        print(f"\nModel: {model_name.replace('_', ' ').title()}")
-        print(f"Prediction: {result['predicted_label']}")
-        print(f"Malware Probability: {result['malware_probability']:.4f}")
+    print("\nPredictions:")
+    print(f"Prediction: {results['predicted_label']}")
+    print(f"Malware Probability: {results['malware_probability']:.4f}")

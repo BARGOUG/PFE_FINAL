@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Scanner</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>File Scanner</h1>
+      <p>Upload your file to scan for viruses and other threats.</p>
+    </header>
+
+    <main>
+      <!-- File Upload Section -->
+      <section class="upload-section">
+        <div class="upload-box">
+          <!-- Hidden input for file selection -->
+          <input type="file" id="fileInput" accept="*" style="display: none;" />
+          <!-- Label acts as a clickable button -->
+          <label for="fileInput" class="upload-label" id="uploadLabel">
+            <span>Choose a file or drag it here</span>
+            <small>Supported formats: Any</small>
+          </label>
+        </div>
+        <!-- Scan button -->
+        <button id="scanButton" disabled>Scan File</button>
+      </section>
+
+      <!-- Progress Bar -->
+      <section class="progress-section" id="progressSection" style="display: none;">
+        <div class="progress-bar">
+          <div class="progress" id="progress"></div>
+        </div>
+        <p id="progressText">Scanning in progress...</p>
+      </section>
+
+      <!-- Results Section -->
+      <section class="results-section" id="resultsSection" style="display: none;">
+        <h2>Scan Results</h2>
+        <div class="result-item">
+          <span class="result-title">File Name:</span>
+          <span id="fileName">N/A</span>
+        </div>
+        <div class="result-item">
+          <span class="result-title">File Size:</span>
+          <span id="fileSize">N/A</span>
+        </div>
+        <div class="result-item">
+          <span class="result-title">Scan Status:</span>
+          <span id="scanStatus">N/A</span>
+        </div>
+        <div class="result-item">
+          <span class="result-title">Threat Detected:</span>
+          <span id="threatDetected">N/A</span>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy; 2023 File Scanner. All rights reserved.</p>
+    </footer>
+  </div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
