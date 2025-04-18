@@ -14,6 +14,15 @@
     </header>
 
     <main>
+      <!-- Analysis Type Selection -->
+      <div class="analysis-type">
+        <label for="analysisType">Select Analysis Type:</label>
+        <select id="analysisType">
+          <option value="dynamic">Dynamic Analysis</option>
+          <option value="static">Static Analysis (VirusTotal)</option>
+        </select>
+      </div>
+
       <!-- File Upload Section -->
       <section class="upload-section">
         <div class="upload-box">
@@ -56,6 +65,13 @@
           <span class="result-title">Threat Detected:</span>
           <span id="threatDetected">N/A</span>
         </div>
+        <!-- Malware Probability (Dynamic Analysis Only) -->
+        <div class="result-item" id="malwareProbability" style="display: none;">
+          <span class="result-title">Malware Probability:</span>
+          <span id="probabilityValue">N/A</span>
+        </div>
+        <!-- Antivirus Results (Static Analysis Only) -->
+        <div id="antivirusResults"></div>
       </section>
     </main>
 

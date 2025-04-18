@@ -10,9 +10,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const fileSizeDisplay = document.getElementById('fileSize');
   const scanStatusDisplay = document.getElementById('scanStatus');
   const threatDetectedDisplay = document.getElementById('threatDetected');
+  const malwareProbabilityDisplay = document.getElementById('malwareProbability');
+  const probabilityValueDisplay = document.getElementById('probabilityValue');
+  const antivirusResultsDisplay = document.getElementById('antivirusResults');
 
   let selectedFile = null;
-  let isScanning = false; // Add a flag to prevent duplicate scans
+  let isScanning = false;
 
   // Enable scan button when a file is selected
   fileInput.addEventListener('change', (event) => {
@@ -39,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Handle click on the label to trigger file input
   uploadLabel.addEventListener('click', () => {
-    fileInput.click(); // Programmatically trigger the file input dialog
+    fileInput.click();
   });
 
   // Handle scan button click
@@ -59,6 +62,10 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const formData = new FormData();
       formData.append('file', selectedFile);
+
+      // Add analysis type
+      const analysisType = document.getElementById('analysisType').value;
+      formData.append('analysis_type', analysisType);
 
       let progressValue = 0;
       const interval = setInterval(() => {
@@ -84,18 +91,47 @@ document.addEventListener('DOMContentLoaded', () => {
       const result = await response.json();
 
       setTimeout(() => {
+        // Display basic results
         fileNameDisplay.textContent = selectedFile.name;
         fileSizeDisplay.textContent = `${(selectedFile.size / 1024).toFixed(2)} KB`;
         scanStatusDisplay.textContent = result.data.attributes.status;
+
+        // Handle stats
+        const stats = result.data.attributes.stats;
         threatDetectedDisplay.textContent =
-          result.data.attributes.stats.malicious > 0
+          stats.malicious > 0
             ? 'Threat detected'
             : 'No threats detected';
 
-        // Display MLP prediction details
-        const mlpPrediction = result.data.attributes.mlp_prediction;
-        threatDetectedDisplay.textContent += ` (${mlpPrediction.predicted_label})`;
-        threatDetectedDisplay.textContent += ` (Probability: ${mlpPrediction.malware_probability.toFixed(4)})`;
+        // Check if analysis type is dynamic
+        if (result.data.attributes.mlp_prediction) {
+          const mlpPrediction = result.data.attributes.mlp_prediction;
+          const probability = mlpPrediction.malware_probability;
+
+          // Show malware probability
+          malwareProbabilityDisplay.style.display = 'block';
+          probabilityValueDisplay.textContent = `${(probability * 100).toFixed(2)}%`;
+        } else {
+          malwareProbabilityDisplay.style.display = 'none';
+        }
+
+        // Check if analysis type is static
+        if (result.data.attributes.file_details) {
+          const antivirusResults = result.data.attributes.file_details.last_analysis_results;
+          let antivirusDetailsHTML = "<h3>Antivirus Results:</h3>";
+          for (const [engine, result] of Object.entries(antivirusResults)) {
+            antivirusDetailsHTML += `
+              <div>
+                <strong>${engine}:</strong>
+                <span>Category: ${result.category || 'N/A'}</span>,
+                <span>Result: ${result.result || 'N/A'}</span>
+              </div>
+            `;
+          }
+          antivirusResultsDisplay.innerHTML = antivirusDetailsHTML;
+        } else {
+          antivirusResultsDisplay.innerHTML = '';
+        }
 
         resultsSection.style.display = 'block';
       }, 500);
@@ -103,8 +139,8 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Error scanning file:', error);
       progressText.textContent = 'An error occurred during scanning.';
     } finally {
-      isScanning = false; // Reset the scanning flag
-      scanButton.disabled = false; // Re-enable the scan button
+      isScanning = false;
+      scanButton.disabled = false;
     }
   });
 });

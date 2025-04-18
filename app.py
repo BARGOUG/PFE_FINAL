@@ -3,6 +3,7 @@ import os
 import subprocess
 import time
 import joblib
+import requests
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key_here"
@@ -18,7 +19,12 @@ REPORT_RESULTS_PATH = "/var/www/PFE_FINAL/report_results/report.txt"
 TFIDF_VECTORIZER_PATH = "/var/www/PFE_FINAL/model_training_testing/tfidf_vectorizer.pkl"
 MLP_MODEL_PATH = "/var/www/PFE_FINAL/model_training_testing/mlp_neural_network_model.pkl"
 
-# Helper Functions
+# VirusTotal API Configuration
+VIRUSTOTAL_API_KEY = os.getenv("VIRUSTOTAL_API_KEY")
+VIRUSTOTAL_UPLOAD_URL = "https://www.virustotal.com/api/v3/files"
+VIRUSTOTAL_REPORT_URL = "https://www.virustotal.com/api/v3/analyses/{analysis_id}"
+VIRUSTOTAL_FILE_INFO_URL = "https://www.virustotal.com/api/v3/files/{file_hash}"
+
 def get_latest_analysis_number():
     """Extract the latest analysis number from CAPE analyses directory."""
     try:
@@ -80,8 +86,9 @@ def index():
 def scan_file():
     print("Scan request received.")  # Debug log
 
-    # Step 1: Get the uploaded file
+    # Step 1: Get the uploaded file and analysis type
     file = request.files.get("file")
+    analysis_type = request.form.get("analysis_type", "dynamic")  # Default to dynamic analysis
     if not file:
         return jsonify({"error": "No file uploaded."}), 400
 
@@ -90,73 +97,215 @@ def scan_file():
     file.save(file_path)
     print(f"File saved to: {file_path}")  # Debug log
 
-    # Step 2: Temporarily change to the CAPE directory
     try:
+        if analysis_type == "dynamic":
+            # Perform Dynamic Analysis
+            return perform_dynamic_analysis(file_path)
+        elif analysis_type == "static":
+            # Perform Static Analysis using VirusTotal
+            return perform_static_analysis(file_path)
+        else:
+            return jsonify({"error": "Invalid analysis type selected."}), 400
+    except Exception as e:
+        return jsonify({"error": f"Unexpected error: {e}"}), 500
+
+
+def perform_dynamic_analysis(file_path):
+    """
+    Perform dynamic analysis using CAPE sandbox and MLP model.
+    """
+    try:
+        # Submit file to CAPE sandbox
         original_dir = os.getcwd()
         os.chdir("/opt/CAPEv2")
-        print("Changed directory to /opt/CAPEv2")  # Debug log
-
-        # Step 3: Start CAPE analysis
         submit_command = [
             "poetry", "run", "python", "/opt/CAPEv2/utils/submit.py",
             "--timeout", "240", file_path
         ]
         subprocess.run(submit_command, check=True)
-        print("CAPE analysis started successfully.")  # Debug log
-
-        # Return to the original directory
+        print("CAPE analysis started successfully.")
         os.chdir(original_dir)
-        print(f"Returned to original directory: {os.getcwd()}")  # Debug log
 
-    except subprocess.CalledProcessError as e:
-        return jsonify({"error": f"Error submitting file to CAPE: {e}"}), 500
-    except Exception as e:
-        return jsonify({"error": f"Unexpected error: {e}"}), 500
+        # Wait for analysis to complete
+        print("Waiting for 360 seconds...")
+        time.sleep(300)
 
-    # Step 4: Wait for 360 seconds (6 minutes)
-    print("Waiting for 360 seconds...")  # Debug log
-    time.sleep(360)
-
-    # Step 5: Run the `extracted_api_from_report.py` script
-    try:
+        # Extract API calls and run MLP testing
         subprocess.run(["python3", EXTRACTED_API_SCRIPT], check=True)
-        print("Extracted API calls successfully.")  # Debug log
-    except subprocess.CalledProcessError as e:
-        return jsonify({"error": f"Error running extracted_api_from_report.py: {e}"}), 500
-
-    # Step 6: Run the MLP testing script
-    try:
         subprocess.run(["python3", MLP_TESTING_SCRIPT], check=True)
-        print("MLP testing completed successfully.")  # Debug log
-    except subprocess.CalledProcessError as e:
-        return jsonify({"error": f"Error running MLP testing script: {e}"}), 500
 
-    # Step 7: Run the MLP prediction logic
-    mlp_results = run_mlp_testing()
-    if "error" in mlp_results:
-        return jsonify(mlp_results), 500
+        # Run MLP prediction logic
+        mlp_results = run_mlp_testing()
+        if "error" in mlp_results:
+            return jsonify(mlp_results), 500
 
-    # Step 8: Clear the samples directory
-    try:
+        # Clear samples directory
         for file_name in os.listdir(SAMPLES_UPLOAD_PATH):
-            file_to_remove = os.path.join(SAMPLES_UPLOAD_PATH, file_name)
-            os.remove(file_to_remove)
-        print("Cleared all files from samples directory.")  # Debug log
-    except Exception as e:
-        return jsonify({"error": f"Error clearing samples directory: {e}"}), 500
+            os.remove(os.path.join(SAMPLES_UPLOAD_PATH, file_name))
 
-    # Step 9: Prepare the response and send it to the frontend
-    return jsonify({
-        "data": {
-            "attributes": {
-                "status": "completed",
-                "stats": {
-                    "malicious": 1 if mlp_results["predicted_label"] == "Malware" else 0
-                },
-                "mlp_prediction": mlp_results
+        # Prepare response
+        return jsonify({
+            "data": {
+                "attributes": {
+                    "status": "completed",
+                    "stats": {
+                        "malicious": 1 if mlp_results["predicted_label"] == "Malware" else 0
+                    },
+                    "mlp_prediction": mlp_results
+                }
             }
-        }
-    }), 200
+        }), 200
+    except Exception as e:
+        return jsonify({"error": f"Dynamic analysis failed: {e}"}), 500
+
+
+def perform_static_analysis(file_path):
+    """
+    Perform static analysis using VirusTotal API and return all available information.
+    """
+    try:
+        # Step 1: Upload the file to VirusTotal
+        print(f"Uploading file '{file_path}' to VirusTotal...")
+        analysis_id = upload_file_to_virustotal(file_path)
+        if not analysis_id:
+            return jsonify({"error": "Failed to upload file to VirusTotal."}), 500
+
+        print(f"File uploaded successfully. Analysis ID: {analysis_id}")
+
+        # Step 2: Wait for the analysis to complete
+        print("Waiting for analysis to complete...")
+        analysis_results = wait_for_analysis_completion(analysis_id)
+        if not analysis_results:
+            return jsonify({"error": "Failed to retrieve analysis results from VirusTotal."}), 500
+
+        # Step 3: Extract file hash
+        file_hash = analysis_results.get("meta", {}).get("file_info", {}).get("sha256", "")
+        if not file_hash:
+            return jsonify({"error": "Failed to retrieve file hash from VirusTotal."}), 500
+
+        # Step 4: Retrieve detailed file information
+        file_details = get_file_details(file_hash)
+        if not file_details:
+            return jsonify({"error": "Failed to retrieve detailed file information from VirusTotal."}), 500
+
+        # Step 5: Prepare and return the response
+        attributes = file_details.get("data", {}).get("attributes", {})
+        stats = attributes.get("last_analysis_stats", {})
+        return jsonify({
+            "data": {
+                "attributes": {
+                    "status": "completed",
+                    "stats": {
+                        "malicious": stats.get("malicious", 0),
+                        "suspicious": stats.get("suspicious", 0),
+                        "harmless": stats.get("harmless", 0),
+                        "undetected": stats.get("undetected", 0)
+                    },
+                    "file_details": attributes,
+                    "full_virustotal_report": analysis_results
+                }
+            }
+        }), 200
+    except Exception as e:
+        return jsonify({"error": f"Static analysis failed: {e}"}), 500
+
+
+def upload_file_to_virustotal(file_path):
+    """
+    Uploads a file to VirusTotal for scanning.
+    
+    Args:
+        file_path (str): Path to the file to be uploaded.
+    
+    Returns:
+        str: Analysis ID returned by VirusTotal.
+    """
+    try:
+        with open(file_path, "rb") as file:
+            files = {"file": file}
+            headers = {"x-apikey": VIRUSTOTAL_API_KEY}
+            response = requests.post(VIRUSTOTAL_UPLOAD_URL, files=files, headers=headers)
+            response.raise_for_status()
+            result = response.json()
+            analysis_id = result["data"]["id"]
+            return analysis_id
+    except FileNotFoundError:
+        return None
+    except requests.exceptions.RequestException:
+        return None
+
+
+def get_virustotal_analysis(analysis_id):
+    """
+    Retrieves the analysis results from VirusTotal.
+    
+    Args:
+        analysis_id (str): The analysis ID returned after uploading the file.
+    
+    Returns:
+        dict: Analysis results from VirusTotal.
+    """
+    try:
+        headers = {"x-apikey": VIRUSTOTAL_API_KEY}
+        url = VIRUSTOTAL_REPORT_URL.format(analysis_id=analysis_id)
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        result = response.json()
+        return result
+    except requests.exceptions.RequestException:
+        return None
+
+
+def get_file_details(file_hash):
+    """
+    Retrieves detailed file information from VirusTotal.
+    
+    Args:
+        file_hash (str): SHA-256 hash of the file.
+    
+    Returns:
+        dict: Detailed file information.
+    """
+    try:
+        headers = {"x-apikey": VIRUSTOTAL_API_KEY}
+        url = VIRUSTOTAL_FILE_INFO_URL.format(file_hash=file_hash)
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        result = response.json()
+        return result
+    except requests.exceptions.RequestException:
+        return None
+
+
+def wait_for_analysis_completion(analysis_id, max_retries=10, retry_interval=30):
+    """
+    Waits for the analysis to complete and retrieves the final results.
+    
+    Args:
+        analysis_id (str): The analysis ID returned after uploading the file.
+        max_retries (int): Maximum number of retries to check analysis status.
+        retry_interval (int): Time to wait (in seconds) between retries.
+    
+    Returns:
+        dict: Final analysis results.
+    """
+    for _ in range(max_retries):
+        analysis_results = get_virustotal_analysis(analysis_id)
+        if not analysis_results:
+            return None
+
+        status = analysis_results.get("data", {}).get("attributes", {}).get("status", "")
+        if status == "completed":
+            return analysis_results
+        elif status == "queued":
+            print("Analysis is still queued. Waiting...")
+            time.sleep(retry_interval)
+        else:
+            return None
+
+    print("Max retries reached. Analysis may still be in progress.")
+    return None
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=False)  # Disable debug mode reloading
