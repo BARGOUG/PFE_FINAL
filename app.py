@@ -109,10 +109,10 @@ def scan_file():
     except Exception as e:
         return jsonify({"error": f"Unexpected error: {e}"}), 500
 
-
 def perform_dynamic_analysis(file_path):
     """
     Perform dynamic analysis using CAPE sandbox and MLP model.
+    Dynamically wait for the report to be generated instead of waiting 360 seconds.
     """
     try:
         # Submit file to CAPE sandbox
@@ -126,9 +126,28 @@ def perform_dynamic_analysis(file_path):
         print("CAPE analysis started successfully.")
         os.chdir(original_dir)
 
-        # Wait for analysis to complete
-        print("Waiting for 360 seconds...")
-        time.sleep(300)
+        # Get the latest analysis number before starting the scan
+        initial_analysis_number = get_latest_analysis_number()
+        if not initial_analysis_number:
+            return jsonify({"error": "Failed to retrieve the initial analysis number."}), 500
+
+        # Wait for the new analysis report to be generated
+        print("Waiting for the new analysis report...")
+        max_retries = 60  # Maximum number of retries (e.g., 10 minutes with 10-second intervals)
+        retry_interval = 10  # Time to wait between checks (in seconds)
+
+        for _ in range(max_retries):
+            current_analysis_number = get_latest_analysis_number()
+            if current_analysis_number and current_analysis_number > initial_analysis_number:
+                # Verify the new report corresponds to the uploaded file
+                report_path = os.path.join(CAPE_ANALYSES_PATH, str(current_analysis_number), "reports", "report.json")
+                if os.path.exists(report_path):
+                    print(f"New analysis report detected. Analysis number: {current_analysis_number}")
+                    break
+            print("Analysis report not yet available. Waiting...")
+            time.sleep(retry_interval)
+        else:
+            return jsonify({"error": "Max retries reached. Analysis report not generated."}), 500
 
         # Extract API calls and run MLP testing
         subprocess.run(["python3", EXTRACTED_API_SCRIPT], check=True)
@@ -157,7 +176,6 @@ def perform_dynamic_analysis(file_path):
         }), 200
     except Exception as e:
         return jsonify({"error": f"Dynamic analysis failed: {e}"}), 500
-
 
 def perform_static_analysis(file_path):
     """
@@ -209,7 +227,6 @@ def perform_static_analysis(file_path):
     except Exception as e:
         return jsonify({"error": f"Static analysis failed: {e}"}), 500
 
-
 def upload_file_to_virustotal(file_path):
     """
     Uploads a file to VirusTotal for scanning.
@@ -234,7 +251,6 @@ def upload_file_to_virustotal(file_path):
     except requests.exceptions.RequestException:
         return None
 
-
 def get_virustotal_analysis(analysis_id):
     """
     Retrieves the analysis results from VirusTotal.
@@ -254,7 +270,6 @@ def get_virustotal_analysis(analysis_id):
         return result
     except requests.exceptions.RequestException:
         return None
-
 
 def get_file_details(file_hash):
     """
@@ -276,7 +291,6 @@ def get_file_details(file_hash):
     except requests.exceptions.RequestException:
         return None
 
-
 def wait_for_analysis_completion(analysis_id, max_retries=10, retry_interval=30):
     """
     Waits for the analysis to complete and retrieves the final results.
@@ -293,7 +307,6 @@ def wait_for_analysis_completion(analysis_id, max_retries=10, retry_interval=30)
         analysis_results = get_virustotal_analysis(analysis_id)
         if not analysis_results:
             return None
-
         status = analysis_results.get("data", {}).get("attributes", {}).get("status", "")
         if status == "completed":
             return analysis_results
@@ -302,10 +315,8 @@ def wait_for_analysis_completion(analysis_id, max_retries=10, retry_interval=30)
             time.sleep(retry_interval)
         else:
             return None
-
     print("Max retries reached. Analysis may still be in progress.")
     return None
-
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=False)  # Disable debug mode reloading
