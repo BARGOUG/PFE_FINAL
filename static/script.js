@@ -1,146 +1,190 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const fileInput = document.getElementById('fileInput');
-  const uploadLabel = document.getElementById('uploadLabel');
-  const scanButton = document.getElementById('scanButton');
-  const progressSection = document.getElementById('progressSection');
-  const progress = document.getElementById('progress');
-  const progressText = document.getElementById('progressText');
-  const resultsSection = document.getElementById('resultsSection');
-  const fileNameDisplay = document.getElementById('fileName');
-  const fileSizeDisplay = document.getElementById('fileSize');
-  const scanStatusDisplay = document.getElementById('scanStatus');
-  const threatDetectedDisplay = document.getElementById('threatDetected');
-  const malwareProbabilityDisplay = document.getElementById('malwareProbability');
-  const probabilityValueDisplay = document.getElementById('probabilityValue');
-  const antivirusResultsDisplay = document.getElementById('antivirusResults');
+document.addEventListener("DOMContentLoaded", () => {
+  const fileInput = document.getElementById("fileInput");
+  const uploadLabel = document.getElementById("uploadLabel");
+  const scanButton = document.getElementById("scanButton");
+  const progressSection = document.getElementById("progressSection");
+  const progress = document.getElementById("progress");
+  const progressText = document.getElementById("progressText");
+  const resultsSection = document.getElementById("resultsSection");
+  const fileNameElement = document.getElementById("fileName");
+  const fileSizeElement = document.getElementById("fileSize");
+  const scanStatusElement = document.getElementById("scanStatus");
+  const threatDetectedElement = document.getElementById("threatDetected");
+  const malwareProbabilityElement = document.getElementById("malwareProbability");
+  const probabilityValueElement = document.getElementById("probabilityValue");
+  const antivirusResultsContainer = document.getElementById("antivirusResults");
 
-  let selectedFile = null;
-  let isScanning = false;
+  // Enable the Scan Button when a file is selected
+  fileInput.addEventListener("change", () => {
+    if (fileInput.files.length > 0) {
+      scanButton.disabled = false;
+      const file = fileInput.files[0];
+      fileNameElement.textContent = file.name;
+      fileSizeElement.textContent = `${(file.size / 1024).toFixed(2)} KB`;
+      uploadLabel.innerHTML = `
+        <i class="fas fa-check-circle"></i>
+        <span>File Selected: ${file.name}</span>
+      `;
+    } else {
+      scanButton.disabled = true;
+      uploadLabel.innerHTML = `
+        <i class="fas fa-cloud-upload-alt"></i>
+        <span>Choose a file or drag it here</span>
+        <small>Supported formats: Any</small>
+      `;
+    }
+  });
 
-  // Enable scan button when a file is selected
-  fileInput.addEventListener('change', (event) => {
-    const file = event.target.files[0];
+  // Handle File Upload and Analysis
+  scanButton.addEventListener("click", async () => {
+    const file = fileInput.files[0];
+    const analysisType = document.getElementById("analysisType").value;
+
     if (!file) {
-      console.error('No file selected.');
+      alert("Please select a file to scan.");
       return;
     }
 
-    // Validate file size (optional)
-    const maxSize = 650 * 1024 * 1024; // 650 MB
-    if (file.size > maxSize) {
-      alert('File size exceeds the limit of 650 MB.');
-      return;
-    }
-
-    console.log('Selected file:', file);
-    selectedFile = file;
-
-    // Update the label text to show the selected file name
-    uploadLabel.querySelector('span').textContent = `Selected: ${file.name}`;
-    scanButton.disabled = false;
-  });
-
-  // Handle click on the label to trigger file input
-  uploadLabel.addEventListener('click', () => {
-    fileInput.click();
-  });
-
-  // Handle scan button click
-  scanButton.addEventListener('click', async () => {
-    if (!selectedFile || isScanning) {
-      alert('Please select a file before scanning or wait for the current scan to finish.');
-      return;
-    }
-
-    // Prevent multiple scans
-    isScanning = true;
-
-    // Display progress section
-    progressSection.style.display = 'block';
-    resultsSection.style.display = 'none';
+    // Show progress section
+    progressSection.style.display = "block";
+    resultsSection.style.display = "none";
+    progress.style.width = "0%";
+    progressText.textContent = "Initializing scan...";
 
     try {
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-
-      // Add analysis type
-      const analysisType = document.getElementById('analysisType').value;
-      formData.append('analysis_type', analysisType);
-
+      // Simulate progress bar animation
       let progressValue = 0;
       const interval = setInterval(() => {
-        progressValue += 10;
-        if (progressValue > 100) {
+        if (progressValue >= 90) {
           clearInterval(interval);
-          progressText.textContent = 'Scanning in progress...';
-        } else {
-          progress.style.width = `${progressValue}%`;
-          progressText.textContent = `Uploading... ${progressValue}%`;
         }
-      }, 500);
+        progressValue += 10;
+        progress.style.width = `${progressValue}%`;
+        progressText.textContent = `Scanning in progress... ${progressValue}%`;
+      }, 300);
 
-      const response = await fetch('http://localhost:5000/scan-file', {
-        method: 'POST',
+      // Send file to Flask backend for analysis
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("analysis_type", analysisType);
+
+      const response = await fetch("/scan-file", {
+        method: "POST",
         body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to scan file.');
-      }
+      clearInterval(interval); // Stop progress bar animation
+      progress.style.width = "100%";
+      progressText.textContent = "Finalizing results...";
 
       const result = await response.json();
 
-      setTimeout(() => {
-        // Display basic results
-        fileNameDisplay.textContent = selectedFile.name;
-        fileSizeDisplay.textContent = `${(selectedFile.size / 1024).toFixed(2)} KB`;
-        scanStatusDisplay.textContent = result.data.attributes.status;
-
-        // Handle stats
-        const stats = result.data.attributes.stats;
-        threatDetectedDisplay.textContent =
-          stats.malicious > 0
-            ? 'Threat detected'
-            : 'No threats detected';
-
-        // Check if analysis type is dynamic
-        if (result.data.attributes.mlp_prediction) {
-          const mlpPrediction = result.data.attributes.mlp_prediction;
-          const probability = mlpPrediction.malware_probability;
-
-          // Show malware probability
-          malwareProbabilityDisplay.style.display = 'block';
-          probabilityValueDisplay.textContent = `${(probability * 100).toFixed(2)}%`;
-        } else {
-          malwareProbabilityDisplay.style.display = 'none';
-        }
-
-        // Check if analysis type is static
-        if (result.data.attributes.file_details) {
-          const antivirusResults = result.data.attributes.file_details.last_analysis_results;
-          let antivirusDetailsHTML = "<h3>Antivirus Results:</h3>";
-          for (const [engine, result] of Object.entries(antivirusResults)) {
-            antivirusDetailsHTML += `
-              <div>
-                <strong>${engine}:</strong>
-                <span>Category: ${result.category || 'N/A'}</span>,
-                <span>Result: ${result.result || 'N/A'}</span>
-              </div>
-            `;
-          }
-          antivirusResultsDisplay.innerHTML = antivirusDetailsHTML;
-        } else {
-          antivirusResultsDisplay.innerHTML = '';
-        }
-
-        resultsSection.style.display = 'block';
-      }, 500);
+      if (response.ok) {
+        // Display results
+        displayResults(result.data.attributes, analysisType);
+      } else {
+        throw new Error(result.error || "An error occurred during the scan.");
+      }
     } catch (error) {
-      console.error('Error scanning file:', error);
-      progressText.textContent = 'An error occurred during scanning.';
+      alert(`Error: ${error.message}`);
     } finally {
-      isScanning = false;
-      scanButton.disabled = false;
+      progressText.textContent = "Scan completed.";
     }
   });
+
+  /**
+   * Display scan results based on the analysis type.
+   * @param {Object} attributes - The scan results from the backend.
+   * @param {string} analysisType - The type of analysis performed ("dynamic" or "static").
+   */
+  function displayResults(attributes, analysisType) {
+    resultsSection.style.display = "block";
+    scanStatusElement.textContent = attributes.status;
+
+    if (analysisType === "dynamic") {
+      // Dynamic Analysis Results
+      const mlpPrediction = attributes.mlp_prediction;
+      threatDetectedElement.textContent =
+        mlpPrediction.predicted_label === "Malware" ? "Yes" : "No";
+
+      malwareProbabilityElement.style.display = "flex";
+      probabilityValueElement.textContent = `${(mlpPrediction.malware_probability * 100).toFixed(
+        2
+      )}%`;
+
+      // Clear antivirus results container
+      antivirusResultsContainer.innerHTML = "";
+    } else if (analysisType === "static") {
+      // Static Analysis Results
+      const stats = attributes.stats;
+      threatDetectedElement.textContent = stats.malicious > 0 ? "Yes" : "No";
+
+      // Clear malware probability section
+      malwareProbabilityElement.style.display = "none";
+
+      // Extract and display antivirus results
+      const antivirusResults = attributes.file_details?.last_analysis_results || {};
+      displayAntivirusResults(antivirusResults);
+    }
+  }
+
+  /**
+   * Dynamically populate antivirus results into the UI.
+   * @param {Object} antivirusResults - The antivirus results from the VirusTotal report.
+   */
+  function displayAntivirusResults(antivirusResults) {
+    antivirusResultsContainer.innerHTML = ""; // Clear previous results
+
+    // Add heading
+    const heading = document.createElement("h3");
+    heading.innerHTML = '<i class="fas fa-shield-alt"></i> Antivirus Results:';
+    antivirusResultsContainer.appendChild(heading);
+
+    // Check if antivirusResults is empty
+    if (!antivirusResults || Object.keys(antivirusResults).length === 0) {
+      const noResults = document.createElement("div");
+      noResults.classList.add("result-item");
+      noResults.textContent = "No antivirus results available.";
+      antivirusResultsContainer.appendChild(noResults);
+      return;
+    }
+
+    // Loop through antivirus results and create result items
+    for (const [engine, result] of Object.entries(antivirusResults)) {
+      const resultItem = document.createElement("div");
+      resultItem.classList.add("result-item");
+
+      // Engine Name
+      const engineName = document.createElement("span");
+      engineName.classList.add("engine-name");
+      engineName.textContent = engine;
+
+      // Category
+      const category = document.createElement("span");
+      category.classList.add("category");
+      category.textContent = `Category: ${result.category || "N/A"}`;
+
+      // Result
+      const resultText = document.createElement("span");
+      resultText.classList.add("result");
+      resultText.textContent = `Result: ${result.result || "N/A"}`;
+
+      // Apply color coding based on category
+      if (result.category === "undetected") {
+        resultText.classList.add("undetected");
+      } else if (result.category === "malicious") {
+        resultText.classList.add("malicious");
+      } else if (result.category === "failure") {
+        resultText.classList.add("failure");
+      }
+
+      // Append elements to the result item
+      resultItem.appendChild(engineName);
+      resultItem.appendChild(category);
+      resultItem.appendChild(resultText);
+
+      // Append result item to the container
+      antivirusResultsContainer.appendChild(resultItem);
+    }
+  }
 });

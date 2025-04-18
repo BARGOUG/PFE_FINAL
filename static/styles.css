@@ -7,7 +7,7 @@
 
 body {
   font-family: 'Poppins', Arial, sans-serif;
-  background-color: #f5f7fa; /* Light background */
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
   color: #333;
   line-height: 1.6;
 }
@@ -52,7 +52,13 @@ header p {
 
 /* Analysis Type Dropdown */
 .analysis-type {
-  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px auto;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
 }
 
 .analysis-type label {
@@ -198,6 +204,78 @@ header p {
 
 .result-item span {
   color: #7f8c8d;
+}
+
+/* Antivirus Results Section */
+.antivirus-results {
+  margin-top: 30px;
+  text-align: left;
+}
+
+.antivirus-results h3 {
+  font-size: 1.5rem;
+  color: #202060; /* Dark purple for the heading */
+  margin-bottom: 15px;
+}
+
+.antivirus-results .result-group {
+  margin-bottom: 20px;
+}
+
+.antivirus-results .result-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  margin-bottom: 5px;
+}
+
+.antivirus-results .result-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.antivirus-results .engine-name {
+  font-weight: bold;
+  color: #202060; /* Dark purple for engine names */
+}
+
+.antivirus-results .category {
+  color: #602080; /* Medium purple for categories */
+}
+
+.antivirus-results .result {
+  color: #b030b0; /* Bright magenta for results */
+}
+
+.antivirus-results .undetected {
+  color: #5bc8af; /* Greenish-blue for undetected items */
+}
+
+.antivirus-results .malicious {
+  color: #b030b0; /* Bright magenta for malicious items */
+}
+
+.antivirus-results .failure {
+  color: #e74c3c; /* Red for failures */
+}
+
+/* Responsive Design for Antivirus Results */
+@media (max-width: 768px) {
+  .antivirus-results .result-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .antivirus-results .result-item span {
+    margin-bottom: 5px;
+  }
+
+  .antivirus-results .result-item .result {
+    text-align: right;
+  }
 }
 
 /* Footer */
