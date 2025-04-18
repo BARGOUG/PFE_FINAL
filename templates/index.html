@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>File Scanner</title>
+  <title>SilkScan</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>File Scanner</h1>
+      <h1><i class="fas fa-shield-alt"></i> SilkScan</h1>
       <p>Upload your file to scan for viruses and other threats.</p>
     </header>
 
@@ -30,12 +31,13 @@
           <input type="file" id="fileInput" accept="*" style="display: none;" />
           <!-- Label acts as a clickable button -->
           <label for="fileInput" class="upload-label" id="uploadLabel">
+            <i class="fas fa-cloud-upload-alt"></i>
             <span>Choose a file or drag it here</span>
             <small>Supported formats: Any</small>
           </label>
         </div>
         <!-- Scan button -->
-        <button id="scanButton" disabled>Scan File</button>
+        <button id="scanButton" disabled><i class="fas fa-search"></i> Scan File</button>
       </section>
 
       <!-- Progress Bar -->
@@ -48,26 +50,26 @@
 
       <!-- Results Section -->
       <section class="results-section" id="resultsSection" style="display: none;">
-        <h2>Scan Results</h2>
+        <h2><i class="fas fa-file-alt"></i> Scan Results</h2>
         <div class="result-item">
-          <span class="result-title">File Name:</span>
+          <span class="result-title"><i class="fas fa-file"></i> File Name:</span>
           <span id="fileName">N/A</span>
         </div>
         <div class="result-item">
-          <span class="result-title">File Size:</span>
+          <span class="result-title"><i class="fas fa-weight-hanging"></i> File Size:</span>
           <span id="fileSize">N/A</span>
         </div>
         <div class="result-item">
-          <span class="result-title">Scan Status:</span>
+          <span class="result-title"><i class="fas fa-tasks"></i> Scan Status:</span>
           <span id="scanStatus">N/A</span>
         </div>
         <div class="result-item">
-          <span class="result-title">Threat Detected:</span>
+          <span class="result-title"><i class="fas fa-exclamation-triangle"></i> Threat Detected:</span>
           <span id="threatDetected">N/A</span>
         </div>
         <!-- Malware Probability (Dynamic Analysis Only) -->
         <div class="result-item" id="malwareProbability" style="display: none;">
-          <span class="result-title">Malware Probability:</span>
+          <span class="result-title"><i class="fas fa-percentage"></i> Malware Probability:</span>
           <span id="probabilityValue">N/A</span>
         </div>
         <!-- Antivirus Results (Static Analysis Only) -->
@@ -76,7 +78,7 @@
     </main>
 
     <footer>
-      <p>&copy; 2023 File Scanner. All rights reserved.</p>
+      <p>&copy; 2025 SilkScan. All rights reserved.</p>
     </footer>
   </div>
 
