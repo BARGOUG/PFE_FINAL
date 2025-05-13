@@ -53,7 +53,7 @@ def extract_apis_from_report(report_path):
 
 # Example usage:
 report_path = '/opt/CAPEv2/storage/analyses/latest/reports/report.json'
-output_path = 'report_results/report.txt'
+output_path = '/var/www/PFE_FINAL/report_results/report.txt'
 
 # Wait for the report.json file to be created
 if wait_for_file(report_path):

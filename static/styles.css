@@ -7,8 +7,8 @@
 
 body {
   font-family: 'Poppins', Arial, sans-serif;
-  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
-  color: #333;
+  background: linear-gradient(135deg, #F0F3FF, #836FFF); /* Update gradient */
+  color: #211951; /* Darker primary color for text */
   line-height: 1.6;
 }
 
@@ -16,7 +16,7 @@ body {
   max-width: 800px;
   margin: 50px auto;
   padding: 40px;
-  background: #fff;
+  background: #F0F3FF; /* Light background color */
   border-radius: 12px;
   box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
   text-align: center;
@@ -24,7 +24,7 @@ body {
 
 header h1 {
   font-size: 2.5rem;
-  color: #202060; /* Dark purple for header text */
+  color: #211951; /* Darker primary color for header text */
   margin-bottom: 10px;
   display: flex;
   align-items: center;
@@ -34,7 +34,7 @@ header h1 {
 
 header p {
   font-size: 1rem;
-  color: #7f8c8d;
+  color: #836FFF; /* Secondary color for subtext */
   margin-bottom: 30px;
 }
 
@@ -47,7 +47,7 @@ header p {
 .fa-exclamation-triangle,
 .fa-percentage,
 .fa-weight-hanging {
-  color: #b030b0; /* Bright magenta for icons */
+  color: #15F5BA; /* Bright accent color for icons */
 }
 
 /* Analysis Type Dropdown */
@@ -63,7 +63,7 @@ header p {
 
 .analysis-type label {
   font-weight: bold;
-  color: #202060; /* Dark purple for label text */
+  color: #211951; /* Darker primary color for label text */
   margin-bottom: 5px;
 }
 
@@ -71,16 +71,16 @@ header p {
   width: 100%;
   padding: 10px;
   font-size: 1rem;
-  border: 2px solid #602080; /* Medium purple for dropdown border */
+  border: 2px solid #836FFF; /* Secondary color for dropdown border */
   border-radius: 8px;
-  background-color: #f9f9f9;
-  color: #602080; /* Medium purple for dropdown text */
+  background-color: #F0F3FF; /* Light background color */
+  color: #211951; /* Darker primary color for dropdown text */
   transition: all 0.3s ease;
 }
 
 .analysis-type select:focus {
   outline: none;
-  border-color: #b030b0; /* Bright magenta on focus */
+  border-color: #15F5BA; /* Bright accent color on focus */
 }
 
 /* Upload Section */
@@ -92,7 +92,7 @@ header p {
   position: relative;
   width: 100%;
   height: 180px;
-  border: 2px dashed #bdc3c7;
+  border: 2px dashed #836FFF; /* Secondary color for upload box border */
   border-radius: 12px;
   display: flex;
   justify-content: center;
@@ -102,7 +102,7 @@ header p {
 }
 
 .upload-box:hover {
-  border-color: #b030b0; /* Bright magenta on hover */
+  border-color: #15F5BA; /* Bright accent color on hover */
   transform: scale(1.02);
 }
 
@@ -114,19 +114,19 @@ header p {
 .upload-label span {
   display: block;
   font-size: 1.2rem;
-  color: #333;
+  color: #211951; /* Darker primary color for upload label text */
   margin-top: 10px;
 }
 
 .upload-label small {
   display: block;
   font-size: 0.9rem;
-  color: #7f8c8d;
+  color: #836FFF; /* Secondary color for smaller text */
 }
 
 #scanButton {
-  background: #6c91bf; /* Light blue for scan button */
-  color: #fff;
+  background: #836FFF; /* Secondary color for scan button */
+  color: #211951; /* Darker primary color for button text */
   border: none;
   padding: 12px 24px;
   font-size: 1rem;
@@ -137,12 +137,12 @@ header p {
 }
 
 #scanButton:disabled {
-  background: #bdc3c7;
+  background: #F0F3FF; /* Light background color for disabled state */
   cursor: not-allowed;
 }
 
 #scanButton:hover:not(:disabled) {
-  background: #5bc8af; /* Greenish-blue on hover */
+  background: #15F5BA; /* Bright accent color on hover */
   transform: scale(1.05);
 }
 
@@ -155,7 +155,7 @@ header p {
 .progress-bar {
   width: 100%;
   height: 10px;
-  background: #ecf0f1;
+  background: #F0F3FF; /* Light background color */
   border-radius: 5px;
   overflow: hidden;
 }
@@ -163,14 +163,14 @@ header p {
 .progress {
   width: 0%;
   height: 100%;
-  background: #b030b0; /* Bright magenta for progress bar */
+  background: #15F5BA; /* Bright accent color for progress bar */
   transition: width 0.3s ease;
 }
 
 #progressText {
   margin-top: 10px;
   font-size: 0.9rem;
-  color: #7f8c8d;
+  color: #836FFF; /* Secondary color for progress text */
 }
 
 /* Results Section */
@@ -184,7 +184,7 @@ header p {
   justify-content: space-between;
   margin-bottom: 15px;
   padding: 10px;
-  background: #f9f9f9;
+  background: #F0F3FF; /* Light background color */
   border-radius: 8px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
@@ -196,14 +196,14 @@ header p {
 
 .result-title {
   font-weight: bold;
-  color: #202060; /* Dark purple for result titles */
+  color: #211951; /* Darker primary color for result titles */
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
 .result-item span {
-  color: #7f8c8d;
+  color: #836FFF; /* Secondary color for secondary text */
 }
 
 /* Antivirus Results Section */
@@ -214,7 +214,7 @@ header p {
 
 .antivirus-results h3 {
   font-size: 1.5rem;
-  color: #202060; /* Dark purple for the heading */
+  color: #211951; /* Darker primary color for the heading */
   margin-bottom: 15px;
 }
 
@@ -226,7 +226,7 @@ header p {
   display: flex;
   justify-content: space-between;
   padding: 10px;
-  background: #f9f9f9;
+  background: #F0F3FF; /* Light background color */
   border-radius: 8px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   margin-bottom: 5px;
@@ -239,27 +239,27 @@ header p {
 
 .antivirus-results .engine-name {
   font-weight: bold;
-  color: #202060; /* Dark purple for engine names */
+  color: #211951; /* Darker primary color for engine names */
 }
 
 .antivirus-results .category {
-  color: #602080; /* Medium purple for categories */
+  color: #836FFF; /* Secondary color for categories */
 }
 
 .antivirus-results .result {
-  color: #b030b0; /* Bright magenta for results */
+  color: #15F5BA; /* Bright accent color for results */
 }
 
 .antivirus-results .undetected {
-  color: #5bc8af; /* Greenish-blue for undetected items */
+  color: #15F5BA; /* Bright accent color for undetected items */
 }
 
 .antivirus-results .malicious {
-  color: #b030b0; /* Bright magenta for malicious items */
+  color: #B71C1C; /* Red for malicious items (not in palette, but suitable) */
 }
 
 .antivirus-results .failure {
-  color: #e74c3c; /* Red for failures */
+  color: #FF5722; /* Orange for failures (not in palette, but suitable) */
 }
 
 /* Responsive Design for Antivirus Results */
@@ -283,5 +283,5 @@ footer {
   text-align: center;
   margin-top: 30px;
   font-size: 0.9rem;
-  color: #7f8c8d;
+  color: #836FFF; /* Secondary color for footer text */
 }

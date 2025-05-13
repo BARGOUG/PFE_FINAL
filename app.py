@@ -6,18 +6,18 @@ import joblib
 import requests
 
 app = Flask(__name__)
-app.secret_key = "your_secret_key_here"
+app.secret_key = ""
 
 # Paths
 CAPE_ANALYSES_PATH = "/opt/CAPEv2/storage/analyses"
 SAMPLES_UPLOAD_PATH = "/var/www/PFE_FINAL/samples/"
-MLP_TESTING_SCRIPT = "/var/www/PFE_FINAL/model_training_testing/MLP_testing.py"
+MLP_TESTING_SCRIPT = "/var/www/PFE_FINAL/BEST_MODEL/predection.py"
 EXTRACTED_API_SCRIPT = "/var/www/PFE_FINAL/extracted_api_from_report.py"
 REPORT_RESULTS_PATH = "/var/www/PFE_FINAL/report_results/report.txt"
 
 # Absolute paths for the model and vectorizer
-TFIDF_VECTORIZER_PATH = "/var/www/PFE_FINAL/model_training_testing/tfidf_vectorizer.pkl"
-MLP_MODEL_PATH = "/var/www/PFE_FINAL/model_training_testing/mlp_neural_network_model.pkl"
+BOW_VECTORIZER_PATH = "/var/www/PFE_FINAL/BEST_MODEL/bow_vectorizer.joblib"
+MLP_MODEL_PATH = "/var/www/PFE_FINAL/BEST_MODEL/mlp_model.joblib"
 
 # VirusTotal API Configuration
 VIRUSTOTAL_API_KEY = os.getenv("VIRUSTOTAL_API_KEY")
@@ -43,7 +43,7 @@ def run_mlp_testing():
         dict: Prediction results from the MLP model.
     """
     # Load the TF-IDF vectorizer
-    tfidf = joblib.load(TFIDF_VECTORIZER_PATH)
+    BOW = joblib.load(BOW_VECTORIZER_PATH)
 
     # Define the cleaning function
     def clean_api_calls(api_sequence):
@@ -63,7 +63,7 @@ def run_mlp_testing():
     cleaned_calls = clean_api_calls(sample_api_calls)
 
     # Transform the input using the TF-IDF vectorizer
-    X_input = tfidf.transform([cleaned_calls])
+    X_input = BOW.transform([cleaned_calls])
 
     # Load the MLP model
     model = joblib.load(MLP_MODEL_PATH)
@@ -120,7 +120,7 @@ def perform_dynamic_analysis(file_path):
         os.chdir("/opt/CAPEv2")
         submit_command = [
             "poetry", "run", "python", "/opt/CAPEv2/utils/submit.py",
-            "--timeout", "240", file_path
+            "--timeout", "200", file_path
         ]
         subprocess.run(submit_command, check=True)
         print("CAPE analysis started successfully.")
