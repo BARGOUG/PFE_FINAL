@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>About Scanning Types - SilkScan</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css "/>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f4f9;
+      color: #333;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+
+    h1, h2 {
+      color: #2c3e50;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 1rem;
+      color: #3498db;
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .icon {
+      color: #3498db;
+      margin-right: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1><i class="fas fa-info-circle icon"></i>Understanding Scanning Types</h1>
+
+    <h2><i class="fas fa-bolt icon"></i>Dynamic Analysis</h2>
+    <p>
+      Dynamic analysis involves executing the file in a secure, isolated environment to observe its real-time behavior. This includes monitoring system calls, network activity, and registry changes. It helps detect advanced threats that evade signature-based detection, Based on the changes that malware made on the enivornement our trained machine learning model will take the decision if the file is a malware or not. Please keep in mind if you chose this option the scan may take up to 6 minutes. 
+    </p>
+
+    <h2><i class="fas fa-search-minus icon"></i>Static Analysis</h2>
+    <p>
+      Static analysis examines the file without execution by analyzing its code, structure, and metadata. This method compares the file against known malware signatures and heuristics. We use VirusTotal API to gather results from multiple antivirus engines for better accuracy.
+    </p>
+  </div>
+</body>
+</html>
